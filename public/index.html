@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cabal Online - Task List Overlay</title>
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Orbitron:wght@500;700;900&family=Rajdhani:wght@600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body class="theme-ice5">
+    <!-- Control Panel (Toggleable for Streamer) -->
+    <div id="control-panel" class="control-panel collapsed">
+      <div class="panel-header">
+        <button id="toggle-panel-btn" class="toggle-btn">
+          ⚙️ Configurações
+        </button>
+        <div class="window-actions">
+          <button
+            id="minimize-app-btn"
+            class="window-action-btn"
+            title="Minimizar"
+          >
+            _
+          </button>
+          <button
+            id="save-close-app-btn"
+            class="window-action-btn close"
+            title="Salvar e fechar"
+          >
+            ✕
+          </button>
+        </div>
+      </div>
+      <div class="panel-content">
+        <h3>Painel de Controle</h3>
+
+        <div class="control-group">
+          <label>Selecione o Tema:</label>
+          <div class="theme-selector">
+            <button class="theme-btn" data-theme="theme-purple1">
+              Roxo Profundo
+            </button>
+            <button class="theme-btn" data-theme="theme-gold2">
+              Ouro e Bronze
+            </button>
+            <button class="theme-btn" data-theme="theme-cyan3">
+              Ciano Espectro
+            </button>
+            <button class="theme-btn" data-theme="theme-red4">
+              Rubi Sangrento
+            </button>
+            <button class="theme-btn" data-theme="theme-ice5">
+              Prata e Gelo
+            </button>
+            <button class="theme-btn" data-theme="theme-purple6">
+              Roxo Real
+            </button>
+          </div>
+        </div>
+
+        <label class="opacity-control" for="overlay-opacity-range">
+          <span
+            >Opacidade do overlay:
+            <strong id="overlay-opacity-value">100%</strong></span
+          >
+          <input
+            type="range"
+            id="overlay-opacity-range"
+            min="0"
+            max="100"
+            step="5"
+            value="100"
+          />
+        </label>
+
+        <div class="shortcut-settings">
+          <h4>Atalhos dos contadores</h4>
+          <label
+            >Dungeon +
+            <input
+              id="shortcut-dungeon-increase"
+              class="shortcut-input"
+              readonly
+              value="R"
+          /></label>
+          <label
+            >Dungeon -
+            <input
+              id="shortcut-dungeon-decrease"
+              class="shortcut-input"
+              readonly
+              value="F"
+          /></label>
+          <label
+            >Drop +
+            <input
+              id="shortcut-drop-increase"
+              class="shortcut-input"
+              readonly
+              value="D"
+          /></label>
+          <label
+            >Drop -
+            <input
+              id="shortcut-drop-decrease"
+              class="shortcut-input"
+              readonly
+              value="S"
+          /></label>
+        </div>
+
+        <div class="control-group">
+          <button id="btn-total-reset" class="btn-action btn-secondary">
+            🔄 Resetar Tempo Total
+          </button>
+          <button id="btn-reset-all" class="btn-action btn-danger">
+            🔴 Resetar Tudo
+          </button>
+        </div>
+
+        <hr />
+
+        <h4>Adicionar Nova Task / DG</h4>
+        <div class="control-group">
+          <input
+            type="text"
+            id="input-dg-name"
+            placeholder="Nome da DG (ex: Forgotten Temple B2F)"
+          />
+          <input
+            type="text"
+            id="input-drop-name"
+            placeholder="Nome do Drop (Opcional, ex: SIGMETAL)"
+          />
+          <button id="btn-add-task" class="btn-primary">
+            ➕ Adicionar Task
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN OVERLAY -->
+    <div class="overlay-container">
+      <div class="overlay-credit">Made by: zPenDragonTV</div>
+      <!-- Decorative Header Crest -->
+      <div class="header-crest">
+        <div class="crest-icon"></div>
+      </div>
+
+      <!-- Title & Total Timer -->
+      <div class="overlay-header">
+        <h1 class="main-title">RUSH DE HOJE</h1>
+        <div class="total-timer-container">
+          <div id="total-timer" class="digital-clock">00:00:00</div>
+          <button
+            id="btn-total-toggle-header"
+            class="btn-action btn-header-toggle"
+          >
+            ▶
+          </button>
+        </div>
+      </div>
+
+      <!-- Table Headers -->
+      <div class="task-table-header">
+        <span class="col-checkbox"></span>
+        <span class="col-num">#</span>
+        <span class="col-dg">DUNGEON</span>
+        <span class="col-meta">META</span>
+        <span class="col-time">TEMPO</span>
+        <span class="col-drop">DROP</span>
+        <span class="col-actions"></span>
+      </div>
+
+      <!-- Task List Container -->
+      <div id="task-list" class="task-list">
+        <!-- Dynamic tasks will be inserted here -->
+      </div>
+    </div>
+
+    <script src="scripts.js"></script>
+  </body>
+</html>

@@ -1,0 +1,39 @@
+{
+  "name": "cabal-tasklist-overlay",
+  "version": "1.0.0",
+  "description": "Overlay de Task List personalizável para OBS - Cabal Online BR",
+  "main": "electron-main.js",
+  "scripts": {
+    "start": "electron .",
+    "start:web": "node server.js",
+    "build": "node build-icon.js && electron-builder --win portable"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  },
+  "devDependencies": {
+    "electron": "^38.1.0",
+    "electron-builder": "^26.0.12",
+    "png-to-ico": "^3.0.2",
+    "pngjs": "^7.0.0"
+  },
+  "build": {
+    "appId": "com.cabal.tasklistoverlay",
+    "productName": "Cabal Tasklist Overlay",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "electron-main.js",
+      "preload.js",
+      "server.js",
+      "build/**/*",
+      "public/**/*",
+      "package.json"
+    ],
+    "win": {
+      "target": "portable",
+      "icon": "build/icon.ico"
+    }
+  }
+}
