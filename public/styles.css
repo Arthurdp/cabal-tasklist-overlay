@@ -216,6 +216,7 @@ a,
   border-radius: 8px;
   padding: 22px 18px 20px;
   position: relative;
+  transition: all 0.4s ease;
 }
 
 body.actions-visible .overlay-container {
@@ -339,7 +340,7 @@ body.actions-visible .overlay-container {
 /* Table Header */
 .task-table-header {
   display: grid;
-  grid-template-columns: 25px 25px minmax(100px, 1fr) 40px 110px 120px 0;
+  grid-template-columns: 25px 25px minmax(100px, 1fr) 70px 80px 120px 0;
   gap: 3px;
   font-size: 13px;
   font-weight: 700;
@@ -349,19 +350,24 @@ body.actions-visible .overlay-container {
   margin-bottom: 8px;
   letter-spacing: 2px;
   align-items: center;
+  transition: all 0.4s ease;
+  margin-right: 6px;
 }
 
 body.actions-visible .task-table-header {
-  grid-template-columns: 25px 25px minmax(100px, 1fr) 40px 110px 120px 50px;
+  grid-template-columns: 25px 25px minmax(100px, 1fr) 70px 80px 120px 50px;
 }
 
 .col-checkbox,
 .col-num,
 .col-dg,
-.col-time,
-.col-meta,
 .col-drop {
   text-align: center;
+}
+
+.col-time,
+.col-meta{
+  text-align: left;
 }
 
 /* Task Items */
@@ -504,12 +510,15 @@ body.actions-visible .task-table-header {
   text-overflow: ellipsis;
   max-width: 100%;
   cursor: text;
+  font-size: 12px;
 }
 
 .task-name[contenteditable="true"],
 .task-drop-name[contenteditable="true"] {
   outline: none;
   user-select: text;
+  font-size: 12px;
+  letter-spacing: 1px;
 }
 
 .task-checkbox {
@@ -636,6 +645,7 @@ body.actions-visible .task-table-header {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8);
   color: #f8fafc;
   font-family: Arial, sans-serif;
+  transition: all 0.4s ease;
 }
 
 .control-panel.collapsed .panel-content {

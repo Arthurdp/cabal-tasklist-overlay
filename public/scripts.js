@@ -730,8 +730,6 @@ function setupControlPanel() {
     if (dom.listHeightValue) {
       dom.listHeightValue.textContent = `${event.target.value}px`;
     }
-  });
-  dom.listHeightRange?.addEventListener("change", (event) => {
     const value = Number(event.target.value);
     state.listMaxHeight = value >= 1400 ? 0 : clamp(value, 150, 1400);
     applyListHeight();
