@@ -61,10 +61,3 @@ build-icon.js      gera build/icon.ico
 ## Licença
 
 MIT
-
-## Gerar o .exe automaticamente (GitHub Actions)
-
-O arquivo `ci/build-windows.yml` é um workflow pronto. Para ativar, copie-o para
-`.github/workflows/build-windows.yml` no repositório (pelo site do GitHub ou
-localmente) e faça push. A cada push o `.exe` aparece em **Actions → artifact**;
-ao criar uma tag `v1.1.0`, uma **Release** é publicada com o executável.
