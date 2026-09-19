@@ -1,7 +1,7 @@
 {
   "name": "cabal-tasklist-overlay",
   "version": "1.1.0",
-  "description": "Overlay de Task List personalizável para OBS - Cabal Online BR",
+  "description": "Overlay de Task List personalizável para OBS - Cabal Online",
   "main": "electron-main.js",
   "author": "zPenDragonTV",
   "license": "MIT",
