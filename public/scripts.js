@@ -176,24 +176,45 @@ function loadState() {
   }
 }
 
+// Fallback embutido: usado quando o fetch("tasks.json") falha (ex.: abrindo o
+// arquivo direto via file:// no navegador, sem servidor, onde fetch a
+// arquivos locais é bloqueado). Sem isso a lista ficava vazia e nenhum botão
+// tinha o que fazer, embora os handlers estivessem corretos.
+const FALLBACK_DEFAULT_TASKS = [
+  { id: 1, name: "DGS DA ASA X6", dropName: "NENHUM", meta: 1, repeatCount: 0, dropCount: 0 },
+  { id: 2, name: "ARENA E GLACIES", dropName: "NENHUM", meta: 1, repeatCount: 0, dropCount: 0 },
+  { id: 3, name: "CHAVE DIABOLICA X12", dropName: "NENHUM", meta: 1, repeatCount: 0, dropCount: 0 },
+  { id: 4, name: "BALDUS", dropName: "NENHUM", meta: 1, repeatCount: 0, dropCount: 0 },
+  { id: 5, name: "VALE NORMAL X40", dropName: "JOIA AMARELA", meta: 1, repeatCount: 0, dropCount: 0 },
+  { id: 6, name: "CRISTA ILUSÓRIA X55", dropName: "JOIA VIOLETA", meta: 1, repeatCount: 0, dropCount: 0 },
+  { id: 7, name: "B3F X15", dropName: "JOIA AZUL", meta: 1, repeatCount: 0, dropCount: 0 },
+  { id: 8, name: "T2 D X28", dropName: "JOIA AZUL", meta: 1, repeatCount: 0, dropCount: 0 },
+  { id: 9, name: "C1 D X28", dropName: "JOIA AZUL", meta: 1, repeatCount: 0, dropCount: 0 },
+];
+
 async function loadDefaultTasks() {
+  let defaults;
   try {
     const res = await fetch("tasks.json");
-    const defaults = await res.json();
-    return defaults.map((task) => ({
-      id: task.id,
-      name: task.name,
-      time: 0,
-      dropName: task.dropName ?? "NENHUM",
-      meta: task.meta ?? 1,
-      repeatCount: task.repeatCount ?? 0,
-      dropCount: task.dropCount ?? 0,
-      completed: false,
-    }));
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    defaults = await res.json();
   } catch (error) {
-    console.error("Falha ao carregar tasks.json:", error);
-    return [];
+    console.error(
+      "Falha ao carregar tasks.json (usando lista padrão embutida):",
+      error,
+    );
+    defaults = FALLBACK_DEFAULT_TASKS;
   }
+  return defaults.map((task) => ({
+    id: task.id,
+    name: task.name,
+    time: 0,
+    dropName: task.dropName ?? "NENHUM",
+    meta: task.meta ?? 1,
+    repeatCount: task.repeatCount ?? 0,
+    dropCount: task.dropCount ?? 0,
+    completed: false,
+  }));
 }
 
 // --- Aplicação de configurações visuais -----------------------------------
@@ -775,7 +796,7 @@ function setupControlPanel() {
   // Timer total
   dom.totalToggle?.addEventListener("click", toggleTotalTimer);
 
-  document.getElementById("btn-total-reset").addEventListener("click", () => {
+  document.getElementById("btn-total-reset")?.addEventListener("click", () => {
     state.totalSeconds = 0;
     updateTotalTimerDisplay();
     saveState();
@@ -809,20 +830,24 @@ function setupControlPanel() {
     });
   });
 
-  // Copiar cupom
-  const copyBtn = document.getElementById("btn-copy-coupon");
-  const couponCode = document.getElementById("coupon-code");
-  copyBtn?.addEventListener("click", async () => {
-    const code = couponCode?.textContent.trim() || "";
-    try {
-      await navigator.clipboard.writeText(code);
-      copyBtn.textContent = "Copiado!";
-    } catch (_) {
-      copyBtn.textContent = "Erro";
-    }
-    setTimeout(() => {
-      copyBtn.textContent = "Copiar";
-    }, 1500);
+  // Botões "Copiar" (cupom, chave Pix, etc.): cada botão aponta, via
+  // data-copy-target, para o id do elemento cujo texto deve ser copiado.
+  document.querySelectorAll("[data-copy-target]").forEach((btn) => {
+    const targetEl = document.getElementById(btn.dataset.copyTarget);
+    if (!targetEl) return;
+    const originalLabel = btn.textContent;
+    btn.addEventListener("click", async () => {
+      const text = targetEl.textContent.trim();
+      try {
+        await navigator.clipboard.writeText(text);
+        btn.textContent = "Copiado!";
+      } catch (_) {
+        btn.textContent = "Erro";
+      }
+      setTimeout(() => {
+        btn.textContent = originalLabel;
+      }, 1500);
+    });
   });
 }
 
@@ -839,7 +864,6 @@ async function init() {
   applyPanelSide();
   applyListHeight();
   applyAlwaysOnTop();
-  applyUiScale();
   updateShortcutInputs();
 
   setupControlPanel();
@@ -856,7 +880,14 @@ async function init() {
   updateTotalToggleButton();
   if (state.isTotalRunning) startTotalTimer();
 
+  // IMPORTANTE: primeiro informamos o processo principal do tamanho real do
+  // conteúdo (100%, sem zoom) e só then aplicamos o zoom salvo. Se a ordem
+  // fosse invertida, o Electron calcularia o tamanho da janela usando o
+  // tamanho padrão "chute" (600x420) ainda guardado no main process, em vez
+  // do tamanho real do overlay — resultando numa janela pequena demais que
+  // corta o conteúdo ao reabrir o app com zoom > 100% salvo.
   setupWindowAutoResize();
+  applyUiScale();
 
   // Garante que nada se perde ao fechar a janela
   window.addEventListener("beforeunload", saveStateNow);
