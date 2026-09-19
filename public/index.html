@@ -40,6 +40,7 @@
         </div>
 
         <div class="panel-content">
+          <div class="panel-main">
           <h3>Painel de Controle</h3>
 
           <!-- Janela -->
@@ -67,6 +68,26 @@
                 max="200"
                 step="5"
                 value="100"
+              />
+            </label>
+
+            <label class="range-control" for="list-height-range">
+              <span class="range-header">
+                <span
+                  >Altura da lista:
+                  <strong id="list-height-value">Automática</strong></span
+                >
+                <button id="btn-list-height-auto" class="btn-mini" type="button">
+                  Auto
+                </button>
+              </span>
+              <input
+                type="range"
+                id="list-height-range"
+                min="150"
+                max="1400"
+                step="10"
+                value="1400"
               />
             </label>
 
@@ -211,9 +232,10 @@
             </button>
           </div>
 
-          <hr />
+          </div>
 
-          <!-- Redes sociais / contato -->
+          <!-- Redes sociais / contato ("página" lateral) -->
+          <div class="panel-side">
           <div class="control-group social-section">
             <h4>Me encontre em</h4>
             <div class="social-links">

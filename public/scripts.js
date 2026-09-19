@@ -12,6 +12,7 @@ const state = {
   theme: "theme-ice5",
   overlayOpacity: 100,
   uiScale: 100, // porcentagem (50 - 200)
+  listMaxHeight: 0, // 0 = automática (sem limite); em px CSS
   alwaysOnTop: false,
   panelSide: "right", // "left" | "right"
   shortcuts: {
@@ -39,6 +40,8 @@ function cacheDom() {
   dom.opacityValue = document.getElementById("overlay-opacity-value");
   dom.scaleRange = document.getElementById("ui-scale-range");
   dom.scaleValue = document.getElementById("ui-scale-value");
+  dom.listHeightRange = document.getElementById("list-height-range");
+  dom.listHeightValue = document.getElementById("list-height-value");
   dom.alwaysOnTop = document.getElementById("always-on-top-toggle");
   dom.themeButtons = Array.from(document.querySelectorAll(".theme-btn"));
   dom.sideButtons = Array.from(document.querySelectorAll(".segment-btn"));
@@ -79,6 +82,7 @@ function serializeState() {
     theme: state.theme,
     overlayOpacity: state.overlayOpacity,
     uiScale: state.uiScale,
+    listMaxHeight: state.listMaxHeight,
     alwaysOnTop: state.alwaysOnTop,
     panelSide: state.panelSide,
     shortcuts: state.shortcuts,
@@ -130,6 +134,10 @@ function loadState() {
     }
     if (typeof parsed.uiScale === "number") {
       state.uiScale = clamp(Math.round(parsed.uiScale), 50, 200);
+    }
+    if (typeof parsed.listMaxHeight === "number") {
+      state.listMaxHeight =
+        parsed.listMaxHeight > 0 ? clamp(parsed.listMaxHeight, 150, 1400) : 0;
     }
     if (typeof parsed.alwaysOnTop === "boolean") {
       state.alwaysOnTop = parsed.alwaysOnTop;
@@ -218,6 +226,22 @@ function applyUiScale() {
   } else {
     // No navegador / OBS usamos zoom CSS.
     dom.layout.style.zoom = String(state.uiScale / 100);
+  }
+}
+
+function applyListHeight() {
+  const auto = state.listMaxHeight <= 0;
+  document.documentElement.style.setProperty(
+    "--list-max-height",
+    auto ? "none" : `${state.listMaxHeight}px`,
+  );
+  if (dom.listHeightRange) {
+    dom.listHeightRange.value = String(auto ? 1400 : state.listMaxHeight);
+  }
+  if (dom.listHeightValue) {
+    dom.listHeightValue.textContent = auto
+      ? "Automática"
+      : `${state.listMaxHeight}px`;
   }
 }
 
@@ -691,10 +715,31 @@ function setupControlPanel() {
     saveState();
   });
 
-  // Tamanho do app
+  // Tamanho do app: enquanto arrasta só o número muda; aplica ao soltar
   dom.scaleRange?.addEventListener("input", (event) => {
+    if (dom.scaleValue) dom.scaleValue.textContent = `${event.target.value}%`;
+  });
+  dom.scaleRange?.addEventListener("change", (event) => {
     state.uiScale = clamp(Number(event.target.value), 50, 200);
     applyUiScale();
+    saveState();
+  });
+
+  // Altura da lista de tasks (scroll aparece só quando necessário)
+  dom.listHeightRange?.addEventListener("input", (event) => {
+    if (dom.listHeightValue) {
+      dom.listHeightValue.textContent = `${event.target.value}px`;
+    }
+  });
+  dom.listHeightRange?.addEventListener("change", (event) => {
+    const value = Number(event.target.value);
+    state.listMaxHeight = value >= 1400 ? 0 : clamp(value, 150, 1400);
+    applyListHeight();
+    saveState();
+  });
+  document.getElementById("btn-list-height-auto")?.addEventListener("click", () => {
+    state.listMaxHeight = 0;
+    applyListHeight();
     saveState();
   });
 
@@ -794,6 +839,7 @@ async function init() {
   applyTheme();
   applyOverlayTransparency();
   applyPanelSide();
+  applyListHeight();
   applyAlwaysOnTop();
   applyUiScale();
   updateShortcutInputs();
