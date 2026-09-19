@@ -1,15 +1,16 @@
 {
   "name": "cabal-tasklist-overlay",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Overlay de Task List personalizável para OBS - Cabal Online BR",
   "main": "electron-main.js",
+  "author": "zPenDragonTV",
+  "license": "MIT",
   "scripts": {
     "start": "electron .",
     "start:web": "node server.js",
-    "build": "node build-icon.js && electron-builder --win portable"
-  },
-  "dependencies": {
-    "express": "^4.18.2"
+    "check": "node --check electron-main.js && node --check preload.js && node --check server.js && node --check public/scripts.js",
+    "build": "node build-icon.js && electron-builder --win portable",
+    "build:zip": "node build-icon.js && electron-builder --win zip"
   },
   "devDependencies": {
     "electron": "^38.1.0",
@@ -20,20 +21,32 @@
   "build": {
     "appId": "com.cabal.tasklistoverlay",
     "productName": "Cabal Tasklist Overlay",
+    "artifactName": "CabalTasklistOverlay-${version}-${os}-${arch}.${ext}",
+    "compression": "maximum",
+    "electronLanguages": [
+      "pt-BR",
+      "en-US"
+    ],
+    "asar": true,
     "directories": {
       "output": "dist"
     },
     "files": [
       "electron-main.js",
       "preload.js",
-      "server.js",
-      "build/**/*",
       "public/**/*",
-      "package.json"
+      "package.json",
+      "!**/*.md",
+      "!**/*.map"
     ],
     "win": {
-      "target": "portable",
+      "target": [
+        "portable"
+      ],
       "icon": "build/icon.ico"
+    },
+    "portable": {
+      "artifactName": "CabalTasklistOverlay-${version}-portable.exe"
     }
   }
 }

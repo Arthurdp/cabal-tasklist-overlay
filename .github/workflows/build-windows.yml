@@ -1,0 +1,55 @@
+name: Build Windows (.exe)
+
+# Gera o executável portátil para Windows automaticamente.
+# - Em todo push/PR: o .exe fica disponível como "artifact" na aba Actions.
+# - Em tags "v*" (ex: v1.1.0): também publica uma Release no GitHub.
+on:
+  push:
+    branches: ["main", "genspark_ai_developer"]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Checar sintaxe
+        run: npm run check
+
+      - name: Build portable .exe
+        run: npm run build
+        env:
+          # sem code signing
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"
+
+      - name: Tamanho do executável
+        shell: pwsh
+        run: Get-ChildItem dist/*.exe | Select-Object Name, @{n="MB";e={[math]::Round($_.Length/1MB,1)}}
+
+      - name: Publicar artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: CabalTasklistOverlay-windows-portable
+          path: dist/*.exe
+          retention-days: 30
+
+      - name: Publicar Release (tags v*)
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*.exe
+          generate_release_notes: true

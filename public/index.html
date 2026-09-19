@@ -3,184 +3,362 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Cabal Online - Task List Overlay</title>
-    <link rel="stylesheet" href="styles.css" />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700;900&family=Orbitron:wght@500;700;900&family=Rajdhani:wght@600;700&display=swap"
-      rel="stylesheet"
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; font-src 'self'"
     />
+    <title>Cabal Online - Task List Overlay</title>
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <link rel="stylesheet" href="styles.css" />
   </head>
-  <body class="theme-ice5">
-    <!-- Control Panel (Toggleable for Streamer) -->
-    <div id="control-panel" class="control-panel collapsed">
-      <div class="panel-header">
-        <button id="toggle-panel-btn" class="toggle-btn">
-          ⚙️ Configurações
-        </button>
-        <div class="window-actions">
-          <button
-            id="minimize-app-btn"
-            class="window-action-btn"
-            title="Minimizar"
-          >
-            _
+  <body class="theme-ice5 panel-right">
+    <div id="app-layout" class="app-layout">
+      <!-- Control Panel (Toggleable for Streamer) -->
+      <aside id="control-panel" class="control-panel collapsed">
+        <div class="panel-header">
+          <button id="toggle-panel-btn" class="toggle-btn" type="button">
+            ⚙️ Configurações
           </button>
-          <button
-            id="save-close-app-btn"
-            class="window-action-btn close"
-            title="Salvar e fechar"
-          >
-            ✕
-          </button>
-        </div>
-      </div>
-      <div class="panel-content">
-        <h3>Painel de Controle</h3>
-
-        <div class="control-group">
-          <label>Selecione o Tema:</label>
-          <div class="theme-selector">
-            <button class="theme-btn" data-theme="theme-purple1">
-              Roxo Profundo
+          <div class="window-actions">
+            <button
+              id="minimize-app-btn"
+              class="window-action-btn"
+              type="button"
+              title="Minimizar"
+            >
+              _
             </button>
-            <button class="theme-btn" data-theme="theme-gold2">
-              Ouro e Bronze
-            </button>
-            <button class="theme-btn" data-theme="theme-cyan3">
-              Ciano Espectro
-            </button>
-            <button class="theme-btn" data-theme="theme-red4">
-              Rubi Sangrento
-            </button>
-            <button class="theme-btn" data-theme="theme-ice5">
-              Prata e Gelo
-            </button>
-            <button class="theme-btn" data-theme="theme-purple6">
-              Roxo Real
+            <button
+              id="save-close-app-btn"
+              class="window-action-btn close"
+              type="button"
+              title="Salvar e fechar"
+            >
+              ✕
             </button>
           </div>
         </div>
 
-        <label class="opacity-control" for="overlay-opacity-range">
-          <span
-            >Opacidade do overlay:
-            <strong id="overlay-opacity-value">100%</strong></span
-          >
-          <input
-            type="range"
-            id="overlay-opacity-range"
-            min="0"
-            max="100"
-            step="5"
-            value="100"
-          />
-        </label>
+        <div class="panel-content">
+          <div class="panel-main">
+          <h3>Painel de Controle</h3>
 
-        <div class="shortcut-settings">
-          <h4>Atalhos dos contadores</h4>
-          <label
-            >Dungeon +
+          <!-- Janela -->
+          <div class="control-group">
+            <h4>Janela</h4>
+            <div class="toggle-row">
+              <label class="switch" for="always-on-top-toggle">
+                <input type="checkbox" id="always-on-top-toggle" />
+                <span class="switch-slider"></span>
+              </label>
+              <label for="always-on-top-toggle" class="toggle-label">
+                📌 Sempre no topo (Always on Top)
+              </label>
+            </div>
+
+            <label class="range-control" for="ui-scale-range">
+              <span
+                >Tamanho do aplicativo:
+                <strong id="ui-scale-value">100%</strong></span
+              >
+              <input
+                type="range"
+                id="ui-scale-range"
+                min="50"
+                max="200"
+                step="1"
+                value="100"
+              />
+            </label>
+
+            <label class="range-control" for="list-height-range">
+              <span class="range-header">
+                <span
+                  >Altura da lista:
+                  <strong id="list-height-value">Automática</strong></span
+                >
+                <button id="btn-list-height-auto" class="btn-mini" type="button">
+                  Auto
+                </button>
+              </span>
+              <input
+                type="range"
+                id="list-height-range"
+                min="150"
+                max="1400"
+                step="1"
+                value="1400"
+              />
+            </label>
+
+            <label class="range-control" for="overlay-opacity-range">
+              <span
+                >Opacidade do overlay:
+                <strong id="overlay-opacity-value">100%</strong></span
+              >
+              <input
+                type="range"
+                id="overlay-opacity-range"
+                min="0"
+                max="100"
+                step="1"
+                value="100"
+              />
+            </label>
+
+            <div class="segmented" role="group" aria-label="Posição do painel">
+              <span class="segmented-label">Posição do painel:</span>
+              <div class="segmented-buttons">
+                <button
+                  type="button"
+                  class="segment-btn"
+                  data-panel-side="left"
+                >
+                  ◀ Esquerda
+                </button>
+                <button
+                  type="button"
+                  class="segment-btn active"
+                  data-panel-side="right"
+                >
+                  Direita ▶
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <hr />
+
+          <!-- Tema -->
+          <div class="control-group">
+            <h4>Tema</h4>
+            <div class="theme-selector">
+              <button class="theme-btn" type="button" data-theme="theme-purple1">
+                Roxo Profundo
+              </button>
+              <button class="theme-btn" type="button" data-theme="theme-gold2">
+                Ouro e Bronze
+              </button>
+              <button class="theme-btn" type="button" data-theme="theme-cyan3">
+                Ciano Espectro
+              </button>
+              <button class="theme-btn" type="button" data-theme="theme-red4">
+                Rubi Sangrento
+              </button>
+              <button class="theme-btn" type="button" data-theme="theme-ice5">
+                Prata e Gelo
+              </button>
+              <button class="theme-btn" type="button" data-theme="theme-purple6">
+                Roxo Real
+              </button>
+            </div>
+          </div>
+
+          <hr />
+
+          <!-- Atalhos -->
+          <div class="shortcut-settings">
+            <h4>Atalhos dos contadores</h4>
+            <label
+              >Dungeon +
+              <input
+                id="shortcut-dungeon-increase"
+                class="shortcut-input"
+                readonly
+                value="R"
+            /></label>
+            <label
+              >Dungeon -
+              <input
+                id="shortcut-dungeon-decrease"
+                class="shortcut-input"
+                readonly
+                value="F"
+            /></label>
+            <label
+              >Drop +
+              <input
+                id="shortcut-drop-increase"
+                class="shortcut-input"
+                readonly
+                value="D"
+            /></label>
+            <label
+              >Drop -
+              <input
+                id="shortcut-drop-decrease"
+                class="shortcut-input"
+                readonly
+                value="S"
+            /></label>
+          </div>
+
+          <div class="control-group">
+            <h4>Resetar tempo e contadores</h4>
+            <button
+              id="btn-reset-all"
+              class="btn-action btn-danger"
+              type="button"
+            >
+              🔴 Resetar Tudo
+            </button>
+          </div>
+
+          <hr />
+
+          <!-- Nova task -->
+          <h4>Adicionar Nova Task / DG</h4>
+          <div class="control-group">
             <input
-              id="shortcut-dungeon-increase"
-              class="shortcut-input"
-              readonly
-              value="R"
-          /></label>
-          <label
-            >Dungeon -
+              type="text"
+              id="input-dg-name"
+              maxlength="60"
+              placeholder="Nome da DG (ex: Forgotten Temple B2F)"
+            />
             <input
-              id="shortcut-dungeon-decrease"
-              class="shortcut-input"
-              readonly
-              value="F"
-          /></label>
-          <label
-            >Drop +
-            <input
-              id="shortcut-drop-increase"
-              class="shortcut-input"
-              readonly
-              value="D"
-          /></label>
-          <label
-            >Drop -
-            <input
-              id="shortcut-drop-decrease"
-              class="shortcut-input"
-              readonly
-              value="S"
-          /></label>
+              type="text"
+              id="input-drop-name"
+              maxlength="60"
+              placeholder="Nome do Drop (Opcional, ex: SIGMETAL)"
+            />
+            <button id="btn-add-task" class="btn-primary" type="button">
+              ➕ Adicionar Task
+            </button>
+          </div>
+
+          </div>
+
+          <!-- Redes sociais / contato ("página" lateral) -->
+          <div class="panel-side">
+          <div class="control-group social-section">
+            <h4>Me encontre em</h4>
+            <div class="social-links">
+              <a
+                class="social-link kick"
+                href="https://kick.com/zpendragontv"
+                target="_blank"
+                rel="noopener noreferrer"
+                data-external
+              >
+                <span class="social-icon">K</span>
+                <span>Kick</span>
+              </a>
+              <a
+                class="social-link twitch"
+                href="https://www.twitch.tv/zpendragontv"
+                target="_blank"
+                rel="noopener noreferrer"
+                data-external
+              >
+                <span class="social-icon">T</span>
+                <span>Twitch</span>
+              </a>
+              <a
+                class="social-link youtube"
+                href="https://www.youtube.com/@zPenDragonTV"
+                target="_blank"
+                rel="noopener noreferrer"
+                data-external
+              >
+                <span class="social-icon">▶</span>
+                <span>YouTube</span>
+              </a>
+              <a
+                class="social-link instagram"
+                href="https://www.instagram.com/zpendragontv/"
+                target="_blank"
+                rel="noopener noreferrer"
+                data-external
+              >
+                <span class="social-icon">◎</span>
+                <span>Instagram</span>
+              </a>
+              <a
+                class="social-link tiktok"
+                href="https://www.tiktok.com/@zpendragontv"
+                target="_blank"
+                rel="noopener noreferrer"
+                data-external
+              >
+                <span class="social-icon">♪</span>
+                <span>TikTok</span>
+              </a>
+            </div>
+
+            <div class="coupon-box">
+              <span class="coupon-label">🎁 Cupom Cabal Heroes</span>
+              <span class="coupon-label"> +10% Cash Bonus</span>
+              <div class="coupon-row">
+                <code id="coupon-code" class="coupon-code">ZPEN</code>
+                <button
+                  id="btn-copy-coupon"
+                  class="btn-copy"
+                  type="button"
+                  title="Copiar cupom"
+                >
+                  Copiar
+                </button>
+              </div>
+            </div>
+            </a>
+              <a
+                class="social-link tiktok"
+                href="https://heroesgames.com.br/"
+                target="_blank"
+                rel="noopener noreferrer"
+                data-external
+              >
+                <span class="social-icon">C</span>
+                <span>Site Cabal Heroes</span>
+              </a>
+          </div>
+        </div>
+      </aside>
+
+      <!-- MAIN OVERLAY -->
+      <main class="overlay-container">
+        <div class="overlay-credit">
+          <span class="credit-label">Made by:</span>
+          <span class="credit-name">zPenDragonTV</span>
         </div>
 
-        <div class="control-group">
-          <button id="btn-total-reset" class="btn-action btn-secondary">
-            🔄 Resetar Tempo Total
-          </button>
-          <button id="btn-reset-all" class="btn-action btn-danger">
-            🔴 Resetar Tudo
-          </button>
+        <!-- Decorative Header Crest -->
+        <div class="header-crest">
+          <div class="crest-icon"></div>
         </div>
 
-        <hr />
-
-        <h4>Adicionar Nova Task / DG</h4>
-        <div class="control-group">
-          <input
-            type="text"
-            id="input-dg-name"
-            placeholder="Nome da DG (ex: Forgotten Temple B2F)"
-          />
-          <input
-            type="text"
-            id="input-drop-name"
-            placeholder="Nome do Drop (Opcional, ex: SIGMETAL)"
-          />
-          <button id="btn-add-task" class="btn-primary">
-            ➕ Adicionar Task
-          </button>
+        <!-- Title & Total Timer -->
+        <div class="overlay-header">
+          <h1 class="main-title">RUSH DE HOJE</h1>
+          <div class="total-timer-container">
+            <div id="total-timer" class="digital-clock">00:00:00</div>
+            <button
+              id="btn-total-toggle-header"
+              class="btn-action btn-header-toggle"
+              type="button"
+              title="Iniciar / pausar"
+            >
+              ▶
+            </button>
+          </div>
         </div>
-      </div>
-    </div>
 
-    <!-- MAIN OVERLAY -->
-    <div class="overlay-container">
-      <div class="overlay-credit">Made by: zPenDragonTV</div>
-      <!-- Decorative Header Crest -->
-      <div class="header-crest">
-        <div class="crest-icon"></div>
-      </div>
-
-      <!-- Title & Total Timer -->
-      <div class="overlay-header">
-        <h1 class="main-title">RUSH DE HOJE</h1>
-        <div class="total-timer-container">
-          <div id="total-timer" class="digital-clock">00:00:00</div>
-          <button
-            id="btn-total-toggle-header"
-            class="btn-action btn-header-toggle"
-          >
-            ▶
-          </button>
+        <!-- Table Headers -->
+        <div class="task-table-header">
+          <span class="col-checkbox"></span>
+          <span class="col-num">#</span>
+          <span class="col-dg">DUNGEON</span>
+          <span class="col-meta">META</span>
+          <span class="col-time">TEMPO</span>
+          <span class="col-drop">DROP</span>
+          <span class="col-actions"></span>
         </div>
-      </div>
 
-      <!-- Table Headers -->
-      <div class="task-table-header">
-        <span class="col-checkbox"></span>
-        <span class="col-num">#</span>
-        <span class="col-dg">DUNGEON</span>
-        <span class="col-meta">META</span>
-        <span class="col-time">TEMPO</span>
-        <span class="col-drop">DROP</span>
-        <span class="col-actions"></span>
-      </div>
-
-      <!-- Task List Container -->
-      <div id="task-list" class="task-list">
-        <!-- Dynamic tasks will be inserted here -->
-      </div>
+        <!-- Task List Container -->
+        <div id="task-list" class="task-list">
+          <!-- Dynamic tasks will be inserted here -->
+        </div>
+      </main>
     </div>
 
     <script src="scripts.js"></script>
