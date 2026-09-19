@@ -796,7 +796,7 @@ function setupControlPanel() {
   // Timer total
   dom.totalToggle?.addEventListener("click", toggleTotalTimer);
 
-  document.getElementById("btn-total-reset").addEventListener("click", () => {
+  document.getElementById("btn-total-reset")?.addEventListener("click", () => {
     state.totalSeconds = 0;
     updateTotalTimerDisplay();
     saveState();
@@ -830,20 +830,24 @@ function setupControlPanel() {
     });
   });
 
-  // Copiar cupom
-  const copyBtn = document.getElementById("btn-copy-coupon");
-  const couponCode = document.getElementById("coupon-code");
-  copyBtn?.addEventListener("click", async () => {
-    const code = couponCode?.textContent.trim() || "";
-    try {
-      await navigator.clipboard.writeText(code);
-      copyBtn.textContent = "Copiado!";
-    } catch (_) {
-      copyBtn.textContent = "Erro";
-    }
-    setTimeout(() => {
-      copyBtn.textContent = "Copiar";
-    }, 1500);
+  // Botões "Copiar" (cupom, chave Pix, etc.): cada botão aponta, via
+  // data-copy-target, para o id do elemento cujo texto deve ser copiado.
+  document.querySelectorAll("[data-copy-target]").forEach((btn) => {
+    const targetEl = document.getElementById(btn.dataset.copyTarget);
+    if (!targetEl) return;
+    const originalLabel = btn.textContent;
+    btn.addEventListener("click", async () => {
+      const text = targetEl.textContent.trim();
+      try {
+        await navigator.clipboard.writeText(text);
+        btn.textContent = "Copiado!";
+      } catch (_) {
+        btn.textContent = "Erro";
+      }
+      setTimeout(() => {
+        btn.textContent = originalLabel;
+      }, 1500);
+    });
   });
 }
 
