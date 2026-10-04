@@ -1255,6 +1255,32 @@ body {
   transition: none;
 }
 
+.panel-content {
+  align-items: stretch;
+  gap: 12px;
+  max-height: none;
+  overflow: visible;
+}
+
+.panel-column {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.panel-column-1,
+.panel-column-2 {
+  width: 260px;
+}
+
+.panel-column-3 {
+  width: 210px;
+  padding-left: 10px;
+  border-left: 1px solid var(--theme-border);
+}
+
 .overlay-container {
   transition: none;
 }
@@ -1271,9 +1297,8 @@ body {
   text-shadow: 0 0 8px var(--primary-glow);
 }
 
-.panel-main > .control-group,
-.panel-main > .shortcut-settings,
-.panel-side > .control-group {
+.panel-column > .control-group,
+.panel-column > .shortcut-settings {
   padding: 10px;
   border: 1px solid var(--theme-border);
   border-radius: 6px;
@@ -1340,10 +1365,6 @@ body {
   background: color-mix(in srgb, var(--primary-color) 48%, var(--bg-dark));
   border-color: var(--primary-color);
   color: var(--text-bright);
-}
-
-.panel-side {
-  border-left-color: var(--theme-border);
 }
 
 .social-link {

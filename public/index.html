@@ -40,11 +40,14 @@
         </div>
 
         <div class="panel-content">
+          <div class="panel-column panel-column-1" data-panel-column="1"></div>
+          <div class="panel-column panel-column-2" data-panel-column="2"></div>
+          <div class="panel-column panel-column-3" data-panel-column="3"></div>
           <div class="panel-main">
           <h3>Painel de Controle</h3>
 
           <!-- Janela -->
-          <div class="control-group">
+          <div class="control-group" data-panel-column="1">
             <h4>Janela</h4>
             <div class="toggle-row">
               <label class="switch" for="always-on-top-toggle">
@@ -130,7 +133,7 @@
           <hr />
 
           <!-- Tema -->
-          <div class="control-group">
+          <div class="control-group" data-panel-column="2">
             <h4>Tema</h4>
             <div class="theme-selector">
               <button
@@ -235,7 +238,7 @@
           <hr />
 
           <!-- Atalhos -->
-          <div class="shortcut-settings">
+          <div class="shortcut-settings" data-panel-column="2">
             <h4>Atalhos dos contadores</h4>
             <label
               >Dungeon +
@@ -271,7 +274,7 @@
             /></label>
           </div>
 
-          <div class="control-group">
+          <div class="control-group" data-panel-column="2">
             <h4>Resetar tempo e contadores</h4>
             <button
               id="btn-reset-all"
@@ -286,7 +289,7 @@
 
           <!-- Nova task -->
           <h4>Adicionar Nova Task / DG</h4>
-          <div class="control-group">
+          <div class="control-group" data-panel-column="1">
             <input
               type="text"
               id="input-dg-name"
@@ -308,7 +311,7 @@
 
           <!-- Redes sociais / contato ("página" lateral) -->
           <div class="panel-side">
-          <div class="control-group social-section">
+          <div class="control-group social-section" data-panel-column="3">
             <h4>Me encontre em</h4>
             <div class="social-links">
               <a
@@ -392,7 +395,7 @@
           </div>
 
           <!-- Apoio ao criador -->
-          <div class="control-group support-section">
+          <div class="control-group support-section" data-panel-column="3">
             <h4>💜 Apoie o criador</h4>
             <p class="support-text">
               Quer ajudar o criador? Me segue nas redes sociais acima!

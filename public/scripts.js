@@ -75,6 +75,7 @@ function findTask(taskId) {
 
 // --- Persistência (com debounce para não martelar o localStorage) ---------
 let saveTimer = null;
+let saveQueue = Promise.resolve();
 
 function serializeState() {
   return JSON.stringify({
@@ -105,11 +106,22 @@ function serializeState() {
 function saveStateNow() {
   clearTimeout(saveTimer);
   saveTimer = null;
+  const serialized = serializeState();
   try {
-    localStorage.setItem(STORAGE_KEY, serializeState());
+    localStorage.setItem(STORAGE_KEY, serialized);
   } catch (error) {
     console.error("Falha ao salvar estado:", error);
   }
+
+  if (!isDesktopApp) return Promise.resolve();
+  saveQueue = saveQueue
+    .catch(() => {})
+    .then(() => window.tauriOverlay.saveState(serialized))
+    .catch((error) => {
+      console.error("Falha ao salvar estado persistente do app:", error);
+      showToast("Não foi possível salvar os dados do aplicativo.", "error");
+    });
+  return saveQueue;
 }
 
 function saveState() {
@@ -117,12 +129,22 @@ function saveState() {
   saveTimer = setTimeout(saveStateNow, 250);
 }
 
-function loadState() {
+async function loadState() {
   try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (!saved) return;
+    let saved = null;
+    let needsMigration = false;
+    if (isDesktopApp) {
+      saved = await window.tauriOverlay.loadState();
+      if (!saved) {
+        saved = localStorage.getItem(STORAGE_KEY);
+        needsMigration = Boolean(saved);
+      }
+    } else {
+      saved = localStorage.getItem(STORAGE_KEY);
+    }
+    if (!saved) return false;
     const parsed = JSON.parse(saved);
-    if (!parsed || typeof parsed !== "object") return;
+    if (!parsed || typeof parsed !== "object") return false;
 
     if (typeof parsed.theme === "string") state.theme = parsed.theme;
 
@@ -171,8 +193,11 @@ function loadState() {
     if (parsed.shortcuts && typeof parsed.shortcuts === "object") {
       state.shortcuts = { ...state.shortcuts, ...parsed.shortcuts };
     }
+    return needsMigration;
   } catch (error) {
     console.error("Falha ao carregar estado salvo:", error);
+    showToast("Não foi possível ler os dados salvos.", "error");
+    return false;
   }
 }
 
@@ -344,17 +369,58 @@ function applyPanelSide() {
 let lastSentSize = { width: 0, height: 0 };
 function setupWindowAutoResize() {
   if (!isDesktopApp || !dom.layout) return;
+  let resizeFrame = 0;
+  let resizeQueue = Promise.resolve();
   const send = () => {
+    resizeFrame = 0;
     const rect = dom.layout.getBoundingClientRect();
     const width = Math.ceil(rect.width);
     const height = Math.ceil(rect.height);
     if (width === lastSentSize.width && height === lastSentSize.height) return;
-    lastSentSize = { width, height };
-    window.tauriOverlay.resizeToContent({ width, height });
+    resizeQueue = resizeQueue
+      .catch(() => {})
+      .then(() => window.tauriOverlay.resizeToContent({ width, height }))
+      .then(() => {
+        lastSentSize = { width, height };
+      })
+      .catch((error) => {
+        console.error("Falha ao ajustar a janela ao conteúdo:", error);
+      });
   };
-  const observer = new ResizeObserver(() => requestAnimationFrame(send));
+  const schedule = () => {
+    if (!resizeFrame) resizeFrame = requestAnimationFrame(send);
+  };
+  const observer = new ResizeObserver(schedule);
   observer.observe(dom.layout);
-  send();
+  if (dom.controlPanel) observer.observe(dom.controlPanel);
+  if (dom.taskList) observer.observe(dom.taskList);
+  window.addEventListener("resize", schedule);
+  schedule();
+}
+
+function layoutPanelColumns() {
+  const columns = new Map(
+    Array.from(
+      document.querySelectorAll(".panel-column[data-panel-column]"),
+    ).map((column) => [Number(column.dataset.panelColumn), column]),
+  );
+  if (columns.size !== 3) return;
+
+  const title = document.querySelector(".panel-main > h3");
+  if (title) columns.get(1).appendChild(title);
+
+  document
+    .querySelectorAll(
+      ".panel-main [data-panel-column], .panel-side [data-panel-column]",
+    )
+    .forEach((group) => {
+      const column = columns.get(Number(group.dataset.panelColumn));
+      if (column) column.appendChild(group);
+    });
+
+  document.querySelectorAll(".panel-main, .panel-side").forEach((wrapper) => {
+    wrapper.remove();
+  });
 }
 
 function setupWindowDragging() {
@@ -443,6 +509,20 @@ function handleShortcut(event) {
     event.preventDefault();
     applyShortcut(action);
   }
+}
+
+function handleDesktopShortcut(payload) {
+  const action = typeof payload === "string" ? payload : payload?.action;
+  const windowFocused = typeof payload === "object" && payload?.windowFocused;
+  const activeElement = document.activeElement;
+  if (
+    windowFocused &&
+    activeElement instanceof Element &&
+    activeElement.matches("input, textarea, select, [contenteditable='true']")
+  ) {
+    return;
+  }
+  applyShortcut(action);
 }
 
 function applyShortcut(action) {
@@ -807,6 +887,19 @@ function setupControlPanel() {
     dom.taskList.querySelectorAll(".task-item").forEach((item) => {
       item.classList.toggle("show-actions", panelOpen);
     });
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => {
+        if (isDesktopApp)
+          window.tauriOverlay
+            .resizeToContent({
+              width: Math.ceil(dom.layout.getBoundingClientRect().width),
+              height: Math.ceil(dom.layout.getBoundingClientRect().height),
+            })
+            .catch((error) =>
+              console.error("Falha ao redimensionar painel:", error),
+            );
+      }),
+    );
   });
 
   document.getElementById("minimize-app-btn")?.addEventListener("click", () => {
@@ -815,8 +908,8 @@ function setupControlPanel() {
 
   document
     .getElementById("save-close-app-btn")
-    ?.addEventListener("click", () => {
-      saveStateNow();
+    ?.addEventListener("click", async () => {
+      await saveStateNow();
       if (isDesktopApp) window.tauriOverlay.saveAndClose();
       else window.close();
     });
@@ -952,8 +1045,10 @@ async function init() {
   cacheDom();
   if (isDesktopApp) document.documentElement.classList.add("desktop-window");
 
+  layoutPanelColumns();
   state.tasks = await loadDefaultTasks();
-  loadState();
+  const migrateLegacyState = await loadState();
+  if (isDesktopApp && migrateLegacyState) await saveStateNow();
 
   applyTheme();
   applyOverlayTransparency();
@@ -965,16 +1060,17 @@ async function init() {
   setupControlPanel();
   setupWindowDragging();
   setupTaskListEvents();
-  document.addEventListener("keydown", handleShortcut);
 
   if (isDesktopApp) {
     try {
-      await window.tauriOverlay.onGlobalShortcut(applyShortcut);
+      await window.tauriOverlay.onGlobalShortcut(handleDesktopShortcut);
       await window.tauriOverlay.updateShortcuts(state.shortcuts);
     } catch (error) {
       console.error("Falha ao inicializar atalhos globais:", error);
       showToast(`Falha ao registrar atalhos: ${error}`, "error");
     }
+  } else {
+    document.addEventListener("keydown", handleShortcut);
   }
 
   renderTasks();

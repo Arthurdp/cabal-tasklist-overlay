@@ -1,7 +1,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use serde::Deserialize;
-use std::{collections::HashMap, str::FromStr, sync::Mutex};
+use std::{collections::HashMap, fs, str::FromStr, sync::Mutex};
 use tauri::{
     AppHandle, Emitter, LogicalSize, Manager, PhysicalPosition, Position, Size, WebviewWindow,
 };
@@ -23,7 +23,8 @@ fn normalize_shortcut(shortcut: &str) -> String {
         .map(str::trim)
         .filter(|part| !part.is_empty())
         .map(|part| match part.to_ascii_lowercase().as_str() {
-            "meta" | "ctrl" | "control" => "ctrl".to_string(),
+            "meta" => "super".to_string(),
+            "ctrl" | "control" => "ctrl".to_string(),
             "arrowup" => "up".to_string(),
             "arrowdown" => "down".to_string(),
             "arrowleft" => "left".to_string(),
@@ -120,6 +121,34 @@ fn close_app(window: WebviewWindow) -> Result<(), String> {
     window.close().map_err(|error| error.to_string())
 }
 
+fn overlay_state_path(app: &AppHandle) -> Result<std::path::PathBuf, String> {
+    app.path()
+        .app_data_dir()
+        .map(|dir| dir.join("tasklist-state.json"))
+        .map_err(|error| format!("Pasta de dados indisponível: {error}"))
+}
+
+#[tauri::command]
+fn load_overlay_state(app: AppHandle) -> Result<Option<String>, String> {
+    match fs::read_to_string(overlay_state_path(&app)?) {
+        Ok(state) => Ok(Some(state)),
+        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(None),
+        Err(error) => Err(format!("Não foi possível ler o estado salvo: {error}")),
+    }
+}
+
+#[tauri::command]
+fn save_overlay_state(app: AppHandle, payload: String) -> Result<(), String> {
+    serde_json::from_str::<serde_json::Value>(&payload)
+        .map_err(|error| format!("Estado inválido: {error}"))?;
+    let path = overlay_state_path(&app)?;
+    let parent = path
+        .parent()
+        .ok_or_else(|| "Pasta de dados inválida".to_string())?;
+    fs::create_dir_all(parent).map_err(|error| error.to_string())?;
+    fs::write(path, payload).map_err(|error| format!("Não foi possível salvar o estado: {error}"))
+}
+
 #[tauri::command]
 fn open_external(app: AppHandle, url: String) -> Result<(), String> {
     let lower = url.to_ascii_lowercase();
@@ -200,16 +229,25 @@ pub fn run() {
                     let Some(action) = action else {
                         return;
                     };
-                    if let Some(window) = app.get_webview_window("main") {
-                        if !window.is_focused().unwrap_or(false) {
-                            let _ = app.emit("global-shortcut", action);
-                        }
-                    }
+                    let window_focused = app
+                        .get_webview_window("main")
+                        .and_then(|window| window.is_focused().ok())
+                        .unwrap_or(false);
+                    let _ = app.emit_to(
+                        "main",
+                        "global-shortcut",
+                        serde_json::json!({
+                            "action": action,
+                            "windowFocused": window_focused,
+                        }),
+                    );
                 })
                 .build(),
         )
         .invoke_handler(tauri::generate_handler![
             update_shortcuts,
+            load_overlay_state,
+            save_overlay_state,
             resize_to_content,
             set_always_on_top,
             minimize_app,

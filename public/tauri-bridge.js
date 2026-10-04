@@ -9,6 +9,8 @@
 
   window.tauriOverlay = {
     updateShortcuts: (shortcuts) => invoke("update_shortcuts", { shortcuts }),
+    loadState: () => invoke("load_overlay_state"),
+    saveState: (payload) => invoke("save_overlay_state", { payload }),
     minimize: () => invoke("minimize_app"),
     saveAndClose: () => invoke("close_app"),
     onGlobalShortcut: (callback) =>
