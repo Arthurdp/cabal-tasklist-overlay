@@ -390,7 +390,12 @@ function updateShortcutInputs() {
 function saveShortcutSettings() {
   saveState();
   updateShortcutInputs();
-  if (isDesktopApp) window.tauriOverlay.updateShortcuts(state.shortcuts);
+  if (isDesktopApp) {
+    window.tauriOverlay.updateShortcuts(state.shortcuts).catch((error) => {
+      console.error("Falha ao registrar atalhos globais:", error);
+      showToast(`Falha ao registrar atalhos: ${error}`, "error");
+    });
+  }
 }
 
 function shortcutFromEvent(event) {
@@ -796,8 +801,12 @@ function setupTaskListEvents() {
 // --- Painel de controle ---------------------------------------------------
 function setupControlPanel() {
   document.getElementById("toggle-panel-btn").addEventListener("click", () => {
-    dom.controlPanel.classList.toggle("collapsed");
-    renderTasks();
+    const collapsed = dom.controlPanel.classList.toggle("collapsed");
+    const panelOpen = !collapsed;
+    dom.body.classList.toggle("actions-visible", panelOpen);
+    dom.taskList.querySelectorAll(".task-item").forEach((item) => {
+      item.classList.toggle("show-actions", panelOpen);
+    });
   });
 
   document.getElementById("minimize-app-btn")?.addEventListener("click", () => {
@@ -959,8 +968,13 @@ async function init() {
   document.addEventListener("keydown", handleShortcut);
 
   if (isDesktopApp) {
-    window.tauriOverlay.updateShortcuts(state.shortcuts);
-    window.tauriOverlay.onGlobalShortcut(applyShortcut);
+    try {
+      await window.tauriOverlay.onGlobalShortcut(applyShortcut);
+      await window.tauriOverlay.updateShortcuts(state.shortcuts);
+    } catch (error) {
+      console.error("Falha ao inicializar atalhos globais:", error);
+      showToast(`Falha ao registrar atalhos: ${error}`, "error");
+    }
   }
 
   renderTasks();

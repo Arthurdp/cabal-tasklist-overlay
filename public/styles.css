@@ -1237,6 +1237,126 @@ body.actions-visible .task-table-header {
   filter: brightness(1.15);
 }
 
+/* --------------------------------------------------------------------------
+   PAINÉIS COM A MESMA MOLDURA ESCURA DO OVERLAY
+   -------------------------------------------------------------------------- */
+body {
+  --theme-panel-bg: var(--bg-dark);
+  --theme-surface: var(--card-bg);
+  --theme-border: var(--frame-border);
+}
+
+.control-panel {
+  background: var(--theme-panel-bg);
+  border: 2px solid var(--theme-border);
+  box-shadow:
+    0 0 20px rgba(0, 0, 0, 0.85),
+    inset 0 0 12px var(--primary-glow);
+  transition: none;
+}
+
+.overlay-container {
+  transition: none;
+}
+
+.panel-header .toggle-btn,
+.window-actions .window-action-btn {
+  background: var(--theme-surface);
+  border-color: var(--theme-border);
+}
+
+.panel-content h3,
+.panel-content h4 {
+  color: var(--accent-color);
+  text-shadow: 0 0 8px var(--primary-glow);
+}
+
+.panel-main > .control-group,
+.panel-main > .shortcut-settings,
+.panel-side > .control-group {
+  padding: 10px;
+  border: 1px solid var(--theme-border);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--bg-dark) 84%, transparent);
+  box-shadow: inset 0 0 10px
+    color-mix(in srgb, var(--primary-glow) 40%, transparent);
+}
+
+.control-group > h4,
+.shortcut-settings > h4 {
+  padding-bottom: 6px;
+  border-bottom: 1px solid
+    color-mix(in srgb, var(--primary-color) 45%, transparent);
+}
+
+.control-panel select,
+.control-panel input[type="text"],
+.control-panel input[readonly],
+.control-panel .segment-btn,
+.control-panel .theme-btn,
+.social-link,
+.shortcut-input {
+  background-color: var(--theme-surface);
+  border-color: var(--theme-border);
+}
+
+.control-panel .btn-primary,
+.control-panel .btn-action:not(.btn-danger) {
+  background: linear-gradient(
+    180deg,
+    var(--primary-color),
+    color-mix(in srgb, var(--primary-color) 72%, #000)
+  );
+  color: #fff;
+  border: 1px solid color-mix(in srgb, var(--accent-color) 65%, #fff);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--primary-glow) 55%, transparent);
+}
+
+.control-panel .btn-primary:hover,
+.control-panel .btn-action:not(.btn-danger):hover {
+  filter: brightness(1.15);
+}
+
+.control-panel .btn-danger {
+  min-height: 38px;
+  background: linear-gradient(135deg, #ef4444, #991b1b);
+  border: 1px solid #fca5a5;
+  color: #fff;
+  font-weight: 800;
+  text-shadow: 0 1px 2px #450a0a;
+  box-shadow:
+    0 0 12px rgba(239, 68, 68, 0.45),
+    inset 0 1px rgba(255, 255, 255, 0.22);
+}
+
+.control-panel .btn-danger:hover {
+  background: linear-gradient(135deg, #f87171, #b91c1c);
+  box-shadow: 0 0 18px rgba(239, 68, 68, 0.7);
+  transform: translateY(-1px);
+}
+
+.control-panel .segment-btn.active,
+.control-panel .theme-btn.active {
+  background: color-mix(in srgb, var(--primary-color) 48%, var(--bg-dark));
+  border-color: var(--primary-color);
+  color: var(--text-bright);
+}
+
+.panel-side {
+  border-left-color: var(--theme-border);
+}
+
+.social-link {
+  border-left-width: 3px;
+}
+
+.shortcut-input:focus,
+.control-panel input:focus,
+.control-panel select:focus {
+  outline: 1px solid var(--primary-color);
+  box-shadow: 0 0 8px var(--primary-glow);
+}
+
 /* Apoio ao criador (redes sociais + Pix) */
 .support-section {
   padding-top: 4px;

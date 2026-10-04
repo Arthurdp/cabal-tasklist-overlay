@@ -20,8 +20,9 @@ struct SavedPosition {
 fn normalize_shortcut(shortcut: &str) -> String {
     shortcut
         .split('+')
+        .map(str::trim)
         .filter(|part| !part.is_empty())
-        .map(|part| match part.trim().to_ascii_lowercase().as_str() {
+        .map(|part| match part.to_ascii_lowercase().as_str() {
             "meta" | "ctrl" | "control" => "ctrl".to_string(),
             "arrowup" => "up".to_string(),
             "arrowdown" => "down".to_string(),
@@ -34,11 +35,17 @@ fn normalize_shortcut(shortcut: &str) -> String {
 }
 
 #[tauri::command]
-fn update_shortcuts(app: AppHandle, shortcuts: HashMap<String, String>) {
-    let _ = app.global_shortcut().unregister_all();
+fn update_shortcuts(app: AppHandle, shortcuts: HashMap<String, String>) -> Result<(), String> {
+    app.global_shortcut()
+        .unregister_all()
+        .map_err(|error| format!("Não foi possível liberar os atalhos anteriores: {error}"))?;
     let mut actions = HashMap::new();
+    let mut errors = Vec::new();
+    let mut configured_shortcuts: Vec<_> = shortcuts.into_iter().collect();
+    configured_shortcuts.sort_by(|a, b| a.0.cmp(&b.0));
+    let mut shortcut_owners = HashMap::new();
 
-    for (action, configured) in shortcuts {
+    for (action, configured) in configured_shortcuts {
         if !matches!(
             action.as_str(),
             "dungeonIncrease" | "dungeonDecrease" | "dropIncrease" | "dropDecrease"
@@ -51,16 +58,39 @@ fn update_shortcuts(app: AppHandle, shortcuts: HashMap<String, String>) {
             continue;
         }
 
-        let Ok(shortcut) = Shortcut::from_str(&normalized) else {
+        if let Some(existing_action) = shortcut_owners.get(&normalized) {
+            errors.push(format!(
+                "'{configured}' está duplicado nas ações {existing_action} e {action}"
+            ));
             continue;
+        }
+        shortcut_owners.insert(normalized.clone(), action.clone());
+
+        let shortcut = match Shortcut::from_str(&normalized) {
+            Ok(shortcut) => shortcut,
+            Err(error) => {
+                errors.push(format!("'{configured}' é inválido: {error}"));
+                continue;
+            }
         };
-        if app.global_shortcut().register(shortcut.clone()).is_ok() {
-            actions.insert(shortcut.to_string().to_ascii_lowercase(), action);
+        match app.global_shortcut().register(shortcut.clone()) {
+            Ok(()) => {
+                actions.insert(shortcut.to_string().to_ascii_lowercase(), action);
+            }
+            Err(error) => errors.push(format!(
+                "não foi possível registrar '{configured}' para {action}: {error}"
+            )),
         }
     }
 
     if let Ok(mut current) = app.state::<ShortcutActions>().0.lock() {
         *current = actions;
+    }
+
+    if errors.is_empty() {
+        Ok(())
+    } else {
+        Err(errors.join("; "))
     }
 }
 
