@@ -5,7 +5,7 @@
 "use strict";
 
 const STORAGE_KEY = "cabalTaskOverlayState";
-const isElectron = Boolean(window.electronOverlay);
+const isDesktopApp = Boolean(window.tauriOverlay);
 
 // --- State Management -----------------------------------------------------
 const state = {
@@ -181,15 +181,78 @@ function loadState() {
 // arquivos locais é bloqueado). Sem isso a lista ficava vazia e nenhum botão
 // tinha o que fazer, embora os handlers estivessem corretos.
 const FALLBACK_DEFAULT_TASKS = [
-  { id: 1, name: "DGS DA ASA X6", dropName: "NENHUM", meta: 1, repeatCount: 0, dropCount: 0 },
-  { id: 2, name: "ARENA E GLACIES", dropName: "NENHUM", meta: 1, repeatCount: 0, dropCount: 0 },
-  { id: 3, name: "CHAVE DIABOLICA X12", dropName: "NENHUM", meta: 1, repeatCount: 0, dropCount: 0 },
-  { id: 4, name: "BALDUS", dropName: "NENHUM", meta: 1, repeatCount: 0, dropCount: 0 },
-  { id: 5, name: "VALE NORMAL X40", dropName: "JOIA AMARELA", meta: 1, repeatCount: 0, dropCount: 0 },
-  { id: 6, name: "CRISTA ILUSÓRIA X55", dropName: "JOIA VIOLETA", meta: 1, repeatCount: 0, dropCount: 0 },
-  { id: 7, name: "B3F X15", dropName: "JOIA AZUL", meta: 1, repeatCount: 0, dropCount: 0 },
-  { id: 8, name: "T2 D X28", dropName: "JOIA AZUL", meta: 1, repeatCount: 0, dropCount: 0 },
-  { id: 9, name: "C1 D X28", dropName: "JOIA AZUL", meta: 1, repeatCount: 0, dropCount: 0 },
+  {
+    id: 1,
+    name: "DGS DA ASA X6",
+    dropName: "NENHUM",
+    meta: 1,
+    repeatCount: 0,
+    dropCount: 0,
+  },
+  {
+    id: 2,
+    name: "ARENA E GLACIES",
+    dropName: "NENHUM",
+    meta: 1,
+    repeatCount: 0,
+    dropCount: 0,
+  },
+  {
+    id: 3,
+    name: "CHAVE DIABOLICA X12",
+    dropName: "NENHUM",
+    meta: 1,
+    repeatCount: 0,
+    dropCount: 0,
+  },
+  {
+    id: 4,
+    name: "BALDUS",
+    dropName: "NENHUM",
+    meta: 1,
+    repeatCount: 0,
+    dropCount: 0,
+  },
+  {
+    id: 5,
+    name: "VALE NORMAL X40",
+    dropName: "JOIA AMARELA",
+    meta: 1,
+    repeatCount: 0,
+    dropCount: 0,
+  },
+  {
+    id: 6,
+    name: "CRISTA ILUSÓRIA X55",
+    dropName: "JOIA VIOLETA",
+    meta: 1,
+    repeatCount: 0,
+    dropCount: 0,
+  },
+  {
+    id: 7,
+    name: "B3F X15",
+    dropName: "JOIA AZUL",
+    meta: 1,
+    repeatCount: 0,
+    dropCount: 0,
+  },
+  {
+    id: 8,
+    name: "T2 D X28",
+    dropName: "JOIA AZUL",
+    meta: 1,
+    repeatCount: 0,
+    dropCount: 0,
+  },
+  {
+    id: 9,
+    name: "C1 D X28",
+    dropName: "JOIA AZUL",
+    meta: 1,
+    repeatCount: 0,
+    dropCount: 0,
+  },
 ];
 
 async function loadDefaultTasks() {
@@ -234,20 +297,15 @@ function applyOverlayTransparency() {
     String(state.overlayOpacity / 100),
   );
   if (dom.opacityRange) dom.opacityRange.value = String(state.overlayOpacity);
-  if (dom.opacityValue) dom.opacityValue.textContent = `${state.overlayOpacity}%`;
+  if (dom.opacityValue)
+    dom.opacityValue.textContent = `${state.overlayOpacity}%`;
 }
 
 function applyUiScale() {
   if (dom.scaleRange) dom.scaleRange.value = String(state.uiScale);
   if (dom.scaleValue) dom.scaleValue.textContent = `${state.uiScale}%`;
-  if (isElectron) {
-    // No Electron o zoom é feito pela própria janela (mais nítido) e o
-    // tamanho da janela acompanha.
-    window.electronOverlay.setUiScale(state.uiScale / 100);
-  } else {
-    // No navegador / OBS usamos zoom CSS.
-    dom.layout.style.zoom = String(state.uiScale / 100);
-  }
+  // O zoom CSS mantém o mesmo comportamento no Tauri, no navegador e no OBS.
+  dom.layout.style.zoom = String(state.uiScale / 100);
 }
 
 function applyListHeight() {
@@ -268,7 +326,7 @@ function applyListHeight() {
 
 function applyAlwaysOnTop() {
   if (dom.alwaysOnTop) dom.alwaysOnTop.checked = state.alwaysOnTop;
-  if (isElectron) window.electronOverlay.setAlwaysOnTop(state.alwaysOnTop);
+  if (isDesktopApp) window.tauriOverlay.setAlwaysOnTop(state.alwaysOnTop);
 }
 
 function applyPanelSide() {
@@ -279,24 +337,40 @@ function applyPanelSide() {
   });
 }
 
-// --- Ajuste da janela Electron ao conteúdo --------------------------------
+// --- Ajuste da janela Tauri ao conteúdo ----------------------------------
 // Um único ResizeObserver no layout: sempre que o conteúdo mudar de tamanho
 // (abrir painel, adicionar task...), a janela acompanha. Só envia IPC quando
 // o tamanho realmente mudou.
 let lastSentSize = { width: 0, height: 0 };
 function setupWindowAutoResize() {
-  if (!isElectron || !dom.layout) return;
+  if (!isDesktopApp || !dom.layout) return;
   const send = () => {
     const rect = dom.layout.getBoundingClientRect();
     const width = Math.ceil(rect.width);
     const height = Math.ceil(rect.height);
     if (width === lastSentSize.width && height === lastSentSize.height) return;
     lastSentSize = { width, height };
-    window.electronOverlay.resizeToContent({ width, height });
+    window.tauriOverlay.resizeToContent({ width, height });
   };
   const observer = new ResizeObserver(() => requestAnimationFrame(send));
   observer.observe(dom.layout);
   send();
+}
+
+function setupWindowDragging() {
+  if (!isDesktopApp) return;
+  const noDragSelector =
+    'button, input, a, [contenteditable="true"], .control-panel, .task-item, .task-actions, .range-control, .shortcut-settings';
+  document.addEventListener("mousedown", (event) => {
+    if (
+      event.button !== 0 ||
+      !(event.target instanceof Element) ||
+      event.target.closest(noDragSelector)
+    ) {
+      return;
+    }
+    window.tauriOverlay.startDragging();
+  });
 }
 
 // --- Atalhos --------------------------------------------------------------
@@ -316,7 +390,7 @@ function updateShortcutInputs() {
 function saveShortcutSettings() {
   saveState();
   updateShortcutInputs();
-  if (isElectron) window.electronOverlay.updateShortcuts(state.shortcuts);
+  if (isDesktopApp) window.tauriOverlay.updateShortcuts(state.shortcuts);
 }
 
 function shortcutFromEvent(event) {
@@ -347,7 +421,9 @@ function setupShortcutInput(elementId, shortcutKey) {
 }
 
 function handleShortcut(event) {
-  if (event.target.matches("input, textarea, select, [contenteditable='true']")) {
+  if (
+    event.target.matches("input, textarea, select, [contenteditable='true']")
+  ) {
     return;
   }
   const pressed = shortcutFromEvent(event);
@@ -433,11 +509,13 @@ function renderTasks() {
 }
 
 function updateTotalToggleButton() {
-  if (dom.totalToggle) dom.totalToggle.textContent = state.isTotalRunning ? "||" : "▶";
+  if (dom.totalToggle)
+    dom.totalToggle.textContent = state.isTotalRunning ? "||" : "▶";
 }
 
 function updateTotalTimerDisplay() {
-  if (dom.totalTimer) dom.totalTimer.textContent = formatTime(state.totalSeconds);
+  if (dom.totalTimer)
+    dom.totalTimer.textContent = formatTime(state.totalSeconds);
 }
 
 // --- Ações das tasks ------------------------------------------------------
@@ -506,7 +584,9 @@ function updateTaskMeta(taskId, value) {
 function saveTaskField(taskId, field, value) {
   const task = findTask(taskId);
   if (!task) return;
-  const text = String(value ?? "").trim().slice(0, 80);
+  const text = String(value ?? "")
+    .trim()
+    .slice(0, 80);
   if (text.length) task[field] = text;
   renderTasks();
   saveState();
@@ -670,7 +750,8 @@ function setupTaskListEvents() {
   });
   list.addEventListener("focusout", (event) => {
     const field = event.target.dataset?.field;
-    if (field) saveTaskField(taskIdFrom(event.target), field, event.target.innerText);
+    if (field)
+      saveTaskField(taskIdFrom(event.target), field, event.target.innerText);
   });
 
   // Drag & drop para reordenar
@@ -720,14 +801,16 @@ function setupControlPanel() {
   });
 
   document.getElementById("minimize-app-btn")?.addEventListener("click", () => {
-    window.electronOverlay?.minimize();
+    window.tauriOverlay?.minimize();
   });
 
-  document.getElementById("save-close-app-btn")?.addEventListener("click", () => {
-    saveStateNow();
-    if (isElectron) window.electronOverlay.saveAndClose();
-    else window.close();
-  });
+  document
+    .getElementById("save-close-app-btn")
+    ?.addEventListener("click", () => {
+      saveStateNow();
+      if (isDesktopApp) window.tauriOverlay.saveAndClose();
+      else window.close();
+    });
 
   // Always on top
   dom.alwaysOnTop?.addEventListener("change", (event) => {
@@ -756,11 +839,13 @@ function setupControlPanel() {
     applyListHeight();
     saveState();
   });
-  document.getElementById("btn-list-height-auto")?.addEventListener("click", () => {
-    state.listMaxHeight = 0;
-    applyListHeight();
-    saveState();
-  });
+  document
+    .getElementById("btn-list-height-auto")
+    ?.addEventListener("click", () => {
+      state.listMaxHeight = 0;
+      applyListHeight();
+      saveState();
+    });
 
   // Opacidade
   dom.opacityRange?.addEventListener("input", (event) => {
@@ -814,19 +899,21 @@ function setupControlPanel() {
     nameInput.value = "";
     dropInput.value = "";
   };
-  document.getElementById("btn-add-task").addEventListener("click", submitNewTask);
+  document
+    .getElementById("btn-add-task")
+    .addEventListener("click", submitNewTask);
   [nameInput, dropInput].forEach((input) => {
     input.addEventListener("keydown", (event) => {
       if (event.key === "Enter") submitNewTask();
     });
   });
 
-  // Links externos abrem no navegador padrão quando dentro do Electron
+  // Links externos abrem no navegador padrão no aplicativo desktop.
   document.querySelectorAll("a[data-external]").forEach((link) => {
     link.addEventListener("click", (event) => {
-      if (!isElectron) return;
+      if (!isDesktopApp) return;
       event.preventDefault();
-      window.electronOverlay.openExternal(link.href);
+      window.tauriOverlay.openExternal(link.href);
     });
   });
 
@@ -854,7 +941,7 @@ function setupControlPanel() {
 // --- Inicialização --------------------------------------------------------
 async function init() {
   cacheDom();
-  if (isElectron) document.documentElement.classList.add("electron-window");
+  if (isDesktopApp) document.documentElement.classList.add("desktop-window");
 
   state.tasks = await loadDefaultTasks();
   loadState();
@@ -867,12 +954,13 @@ async function init() {
   updateShortcutInputs();
 
   setupControlPanel();
+  setupWindowDragging();
   setupTaskListEvents();
   document.addEventListener("keydown", handleShortcut);
 
-  if (isElectron) {
-    window.electronOverlay.updateShortcuts(state.shortcuts);
-    window.electronOverlay.onGlobalShortcut(applyShortcut);
+  if (isDesktopApp) {
+    window.tauriOverlay.updateShortcuts(state.shortcuts);
+    window.tauriOverlay.onGlobalShortcut(applyShortcut);
   }
 
   renderTasks();
@@ -881,11 +969,8 @@ async function init() {
   if (state.isTotalRunning) startTotalTimer();
 
   // IMPORTANTE: primeiro informamos o processo principal do tamanho real do
-  // conteúdo (100%, sem zoom) e só then aplicamos o zoom salvo. Se a ordem
-  // fosse invertida, o Electron calcularia o tamanho da janela usando o
-  // tamanho padrão "chute" (600x420) ainda guardado no main process, em vez
-  // do tamanho real do overlay — resultando numa janela pequena demais que
-  // corta o conteúdo ao reabrir o app com zoom > 100% salvo.
+  // conteúdo e então aplicamos o zoom salvo, permitindo que a janela seja
+  // dimensionada pelo conteúdo já renderizado.
   setupWindowAutoResize();
   applyUiScale();
 

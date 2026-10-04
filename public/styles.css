@@ -219,7 +219,7 @@ body.theme-steel12 {
 
 html,
 body {
-  background: transparent; /* Transparente para OBS / janela Electron */
+  background: transparent; /* Transparente para OBS / janela Tauri */
 }
 
 body {
@@ -233,8 +233,8 @@ body {
   -webkit-app-region: drag;
 }
 
-/* No Electron a janela é ajustada ao conteúdo: nada de 100vh / centralização */
-html.electron-window body {
+/* No app desktop a janela é ajustada ao conteúdo, sem 100vh / centralização */
+html.desktop-window body {
   min-height: 0;
   display: block;
   overflow: hidden;
@@ -446,7 +446,7 @@ body.actions-visible .task-table-header {
 }
 
 .col-time,
-.col-meta{
+.col-meta {
   text-align: left;
 }
 

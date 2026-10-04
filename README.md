@@ -25,8 +25,8 @@ Made by: **zPenDragonTV**
 
 ### Executável (Windows)
 
-1. Baixe o `.exe` portátil na aba **Releases** (ou em **Actions → artifact**).
-2. Execute. Não precisa instalar.
+1. Baixe o instalador `.exe` na aba **Releases** (ou em **Actions → artifact**).
+2. Execute o instalador e abra **Cabal Tasklist Overlay** pelo menu Iniciar.
 3. Clique em **⚙️ Configurações** para abrir o painel.
 4. Arraste a janela pelo fundo do overlay para posicioná-la.
 
@@ -43,19 +43,22 @@ Adicione uma fonte **Navegador** no OBS apontando para `http://localhost:3000`.
 
 ```bash
 npm install
-npm start          # abre o app Electron
+npm start          # abre o app Tauri em modo de desenvolvimento
 npm run check      # valida sintaxe dos arquivos JS
-npm run build      # gera dist/CabalTasklistOverlay-<versão>-portable.exe (Windows)
+npm run build      # gera o instalador Windows com Tauri
 ```
+
+Para compilar o instalador, instale Rust (MSVC), o Microsoft C++ Build Tools e
+o WebView2 Runtime. O Tauri usa o WebView2 do Windows, evitando empacotar um
+navegador Chromium completo junto com o aplicativo.
 
 ## Estrutura
 
 ```
-electron-main.js   processo principal (janela, atalhos globais, IPC)
-preload.js         ponte segura renderer <-> main
+src-tauri/         aplicativo Rust, janela e comandos Tauri
 public/            interface (HTML/CSS/JS + fontes locais + tasks.json)
+public/tauri-bridge.js ponte entre a interface e os comandos Tauri
 server.js          servidor estático mínimo para o modo OBS
-build-icon.js      gera build/icon.ico
 ```
 
 ## Licença
