@@ -177,7 +177,7 @@ async function loadState() {
       state.activeTaskId = parsed.activeTaskId;
     }
     if (Array.isArray(parsed.taskUpdates)) {
-      state.tasks = parsed.taskUpdates
+      const savedTasks = parsed.taskUpdates
         .filter((t) => t && typeof t.id === "number")
         .map((t) => ({
           id: t.id,
@@ -189,6 +189,9 @@ async function loadState() {
           dropCount: typeof t.dropCount === "number" ? t.dropCount : 0,
           completed: typeof t.completed === "boolean" ? t.completed : false,
         }));
+      // Um save vazio/corrompido não deve fazer o overlay iniciar sem tasks.
+      // Uma lista não vazia continua sendo a lista personalizada completa.
+      if (savedTasks.length > 0) state.tasks = savedTasks;
     }
     if (parsed.shortcuts && typeof parsed.shortcuts === "object") {
       state.shortcuts = { ...state.shortcuts, ...parsed.shortcuts };
@@ -367,6 +370,7 @@ function applyPanelSide() {
 // (abrir painel, adicionar task...), a janela acompanha. Só envia IPC quando
 // o tamanho realmente mudou.
 let lastSentSize = { width: 0, height: 0 };
+let resizeWindowToContent = () => {};
 function setupWindowAutoResize() {
   if (!isDesktopApp || !dom.layout) return;
   let resizeFrame = 0;
@@ -386,6 +390,10 @@ function setupWindowAutoResize() {
       .catch((error) => {
         console.error("Falha ao ajustar a janela ao conteúdo:", error);
       });
+  };
+  resizeWindowToContent = () => {
+    if (resizeFrame) cancelAnimationFrame(resizeFrame);
+    send();
   };
   const schedule = () => {
     if (!resizeFrame) resizeFrame = requestAnimationFrame(send);
@@ -887,19 +895,7 @@ function setupControlPanel() {
     dom.taskList.querySelectorAll(".task-item").forEach((item) => {
       item.classList.toggle("show-actions", panelOpen);
     });
-    requestAnimationFrame(() =>
-      requestAnimationFrame(() => {
-        if (isDesktopApp)
-          window.tauriOverlay
-            .resizeToContent({
-              width: Math.ceil(dom.layout.getBoundingClientRect().width),
-              height: Math.ceil(dom.layout.getBoundingClientRect().height),
-            })
-            .catch((error) =>
-              console.error("Falha ao redimensionar painel:", error),
-            );
-      }),
-    );
+    if (isDesktopApp) resizeWindowToContent();
   });
 
   document.getElementById("minimize-app-btn")?.addEventListener("click", () => {
@@ -1046,6 +1042,15 @@ async function init() {
   if (isDesktopApp) document.documentElement.classList.add("desktop-window");
 
   layoutPanelColumns();
+  state.tasks = FALLBACK_DEFAULT_TASKS.map((task) => ({
+    ...task,
+    time: 0,
+    repeatCount: task.repeatCount ?? 0,
+    dropCount: task.dropCount ?? 0,
+    completed: false,
+  }));
+  renderTasks();
+
   state.tasks = await loadDefaultTasks();
   const migrateLegacyState = await loadState();
   if (isDesktopApp && migrateLegacyState) await saveStateNow();
