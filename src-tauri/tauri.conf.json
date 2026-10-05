@@ -19,6 +19,7 @@
         "x": 80,
         "y": 80,
         "resizable": true,
+        "dragDropEnabled": false,
         "decorations": false,
         "transparent": true,
         "shadow": false,
