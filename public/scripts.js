@@ -10,6 +10,7 @@ const isDesktopApp = Boolean(window.tauriOverlay);
 // --- State Management -----------------------------------------------------
 const state = {
   theme: "theme-ice5",
+  animation: "none", // none | pulse | orbit | breathe | sweep | neon
   overlayOpacity: 100,
   uiScale: 100, // porcentagem (50 - 200)
   listMaxHeight: 0, // 0 = automática (sem limite); em px CSS
@@ -44,6 +45,7 @@ function cacheDom() {
   dom.listHeightValue = document.getElementById("list-height-value");
   dom.alwaysOnTop = document.getElementById("always-on-top-toggle");
   dom.themeButtons = Array.from(document.querySelectorAll(".theme-btn"));
+  dom.animButtons = Array.from(document.querySelectorAll(".anim-btn"));
   dom.sideButtons = Array.from(document.querySelectorAll(".segment-btn"));
 }
 
@@ -81,6 +83,7 @@ function serializeState() {
   return JSON.stringify({
     transparencyVersion: 2,
     theme: state.theme,
+    animation: state.animation,
     overlayOpacity: state.overlayOpacity,
     uiScale: state.uiScale,
     listMaxHeight: state.listMaxHeight,
@@ -147,6 +150,8 @@ async function loadState() {
     if (!parsed || typeof parsed !== "object") return false;
 
     if (typeof parsed.theme === "string") state.theme = parsed.theme;
+    if (typeof parsed.animation === "string")
+      state.animation = parsed.animation;
 
     if (
       parsed.transparencyVersion === 2 &&
@@ -316,6 +321,18 @@ function applyTheme() {
   dom.body.classList.add(state.theme);
   dom.themeButtons.forEach((btn) => {
     btn.classList.toggle("active", btn.dataset.theme === state.theme);
+  });
+}
+
+function applyAnimation() {
+  const known = ["pulse", "orbit", "breathe", "sweep", "neon"];
+  if (!known.includes(state.animation)) state.animation = "none";
+  dom.body.classList.remove(...known.map((name) => `anim-${name}`));
+  if (state.animation !== "none") {
+    dom.body.classList.add(`anim-${state.animation}`);
+  }
+  dom.animButtons.forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.anim === state.animation);
   });
 }
 
@@ -970,6 +987,14 @@ function setupControlPanel() {
     });
   });
 
+  dom.animButtons.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      state.animation = btn.dataset.anim;
+      applyAnimation();
+      saveState();
+    });
+  });
+
   // Atalhos
   setupShortcutInput("shortcut-dungeon-increase", "dungeonIncrease");
   setupShortcutInput("shortcut-dungeon-decrease", "dungeonDecrease");
@@ -1056,6 +1081,7 @@ async function init() {
   if (isDesktopApp && migrateLegacyState) await saveStateNow();
 
   applyTheme();
+  applyAnimation();
   applyOverlayTransparency();
   applyPanelSide();
   applyListHeight();

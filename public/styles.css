@@ -1281,6 +1281,143 @@ body {
   border-left: 1px solid var(--theme-border);
 }
 
+/* Animações do overlay (escolhidas no painel, logo abaixo dos temas). */
+@property --anim-angle {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+.anim-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+}
+.anim-btn {
+  min-width: 0;
+  padding: 7px 8px;
+  background: var(--theme-surface, #1e293b);
+  border: 2px solid var(--theme-border, #475569);
+  border-radius: 4px;
+  color: #cbd5e1;
+  cursor: pointer;
+  font-size: 11px;
+  line-height: 1.2;
+  text-align: left;
+  transition:
+    background 0.2s,
+    border-color 0.2s;
+}
+.anim-btn:hover {
+  border-color: var(--primary-color);
+}
+.anim-btn.active {
+  background: color-mix(in srgb, var(--primary-color) 22%, #0f172a);
+  border-color: var(--primary-color);
+  color: #f8fafc;
+  font-weight: 700;
+  box-shadow: 0 0 8px -1px var(--primary-color);
+}
+
+body.anim-pulse .overlay-container {
+  animation: anim-pulse 2.2s ease-in-out infinite;
+}
+body.anim-breathe .overlay-container {
+  animation: anim-breathe 4s ease-in-out infinite;
+}
+body.anim-neon .overlay-container {
+  animation: anim-neon 3.5s linear infinite;
+}
+body.anim-orbit .overlay-container::after,
+body.anim-sweep .overlay-container::after {
+  content: "";
+  position: absolute;
+  inset: -3px;
+  border-radius: inherit;
+  pointer-events: none;
+}
+body.anim-orbit .overlay-container::after {
+  padding: 3px;
+  background: conic-gradient(
+    from var(--anim-angle),
+    transparent 0 65%,
+    var(--primary-color) 85%,
+    var(--accent-color) 100%
+  );
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  filter: drop-shadow(0 0 4px var(--accent-color));
+  animation: anim-orbit 3.5s linear infinite;
+}
+body.anim-sweep .overlay-container::after {
+  background: linear-gradient(
+    115deg,
+    transparent 40%,
+    color-mix(in srgb, var(--accent-color) 28%, transparent) 50%,
+    transparent 60%
+  );
+  background-size: 250% 100%;
+  background-repeat: no-repeat;
+  animation: anim-sweep 4s ease-in-out infinite;
+}
+@keyframes anim-pulse {
+  50% {
+    box-shadow:
+      0 0 25px rgba(0, 0, 0, 0.9),
+      0 0 20px var(--primary-color),
+      inset 0 0 24px var(--primary-glow);
+  }
+}
+@keyframes anim-breathe {
+  50% {
+    border-color: var(--primary-color);
+    box-shadow:
+      0 0 25px rgba(0, 0, 0, 0.9),
+      0 0 10px var(--primary-glow),
+      inset 0 0 28px var(--primary-glow);
+  }
+}
+@keyframes anim-neon {
+  0%,
+  18%,
+  22%,
+  55%,
+  58%,
+  100% {
+    border-color: var(--accent-color);
+    box-shadow:
+      0 0 25px rgba(0, 0, 0, 0.9),
+      0 0 14px var(--primary-color),
+      inset 0 0 15px var(--primary-glow);
+  }
+  20%,
+  56% {
+    border-color: var(--frame-border);
+    box-shadow:
+      0 0 25px rgba(0, 0, 0, 0.9),
+      inset 0 0 6px var(--primary-glow);
+  }
+}
+@keyframes anim-orbit {
+  to {
+    --anim-angle: 360deg;
+  }
+}
+@keyframes anim-sweep {
+  0% {
+    background-position: 150% 0;
+  }
+  60%,
+  100% {
+    background-position: -50% 0;
+  }
+}
+
 .overlay-container {
   transition: none;
 }
