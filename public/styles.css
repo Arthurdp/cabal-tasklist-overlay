@@ -732,6 +732,10 @@ body.actions-visible .task-table-header {
   display: none;
 }
 
+.control-panel.revealing {
+  visibility: hidden;
+}
+
 /* Colapsado: só a barra de título, ocupando o mínimo de largura */
 .control-panel.collapsed {
   flex-basis: auto;

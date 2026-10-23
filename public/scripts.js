@@ -387,30 +387,46 @@ function applyPanelSide() {
 // (abrir painel, adicionar task...), a janela acompanha. Só envia IPC quando
 // o tamanho realmente mudou.
 let lastSentSize = { width: 0, height: 0 };
-let resizeWindowToContent = () => {};
+let resizeWindowToContent = () => Promise.resolve();
 function setupWindowAutoResize() {
   if (!isDesktopApp || !dom.layout) return;
   let resizeFrame = 0;
-  let resizeQueue = Promise.resolve();
+  let inFlight = null;
+  let dirty = false;
+  // Uma chamada por vez, mas sempre re-medindo ao terminar: tamanhos
+  // intermediários (transições CSS) não ficam enfileirados atrasando a janela.
   const send = () => {
     resizeFrame = 0;
+    if (inFlight) {
+      dirty = true;
+      return inFlight;
+    }
     const rect = dom.layout.getBoundingClientRect();
     const width = Math.ceil(rect.width);
     const height = Math.ceil(rect.height);
-    if (width === lastSentSize.width && height === lastSentSize.height) return;
-    resizeQueue = resizeQueue
-      .catch(() => {})
-      .then(() => window.tauriOverlay.resizeToContent({ width, height }))
-      .then(() => {
-        lastSentSize = { width, height };
-      })
+    if (width === lastSentSize.width && height === lastSentSize.height) {
+      return Promise.resolve();
+    }
+    lastSentSize = { width, height };
+    inFlight = Promise.resolve(
+      window.tauriOverlay.resizeToContent({ width, height }),
+    )
       .catch((error) => {
+        lastSentSize = { width: 0, height: 0 };
         console.error("Falha ao ajustar a janela ao conteúdo:", error);
+      })
+      .then(() => {
+        inFlight = null;
+        if (dirty) {
+          dirty = false;
+          return send();
+        }
       });
+    return inFlight;
   };
   resizeWindowToContent = () => {
     if (resizeFrame) cancelAnimationFrame(resizeFrame);
-    send();
+    return send();
   };
   const schedule = () => {
     if (!resizeFrame) resizeFrame = requestAnimationFrame(send);
@@ -908,11 +924,19 @@ function setupControlPanel() {
   document.getElementById("toggle-panel-btn").addEventListener("click", () => {
     const collapsed = dom.controlPanel.classList.toggle("collapsed");
     const panelOpen = !collapsed;
+    // Esconde o painel até a janela crescer, para não aparecer cortado.
+    if (isDesktopApp && panelOpen) dom.controlPanel.classList.add("revealing");
     dom.body.classList.toggle("actions-visible", panelOpen);
     dom.taskList.querySelectorAll(".task-item").forEach((item) => {
       item.classList.toggle("show-actions", panelOpen);
     });
-    if (isDesktopApp) resizeWindowToContent();
+    if (isDesktopApp) {
+      resizeWindowToContent().then(() =>
+        requestAnimationFrame(() =>
+          dom.controlPanel.classList.remove("revealing"),
+        ),
+      );
+    }
   });
 
   document.getElementById("minimize-app-btn")?.addEventListener("click", () => {
