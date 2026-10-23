@@ -1323,13 +1323,13 @@ body {
 }
 
 body.anim-pulse .overlay-container {
-  animation: anim-pulse 2.2s ease-in-out infinite;
+  animation: anim-pulse 2.8s ease-in-out infinite;
 }
 body.anim-breathe .overlay-container {
   animation: anim-breathe 4s ease-in-out infinite;
 }
 body.anim-neon .overlay-container {
-  animation: anim-neon 3.5s linear infinite;
+  animation: anim-neon 4.5s ease-in-out infinite;
 }
 body.anim-orbit .overlay-container::after,
 body.anim-sweep .overlay-container::after {
@@ -1361,49 +1361,65 @@ body.anim-orbit .overlay-container::after {
 body.anim-sweep .overlay-container::after {
   background: linear-gradient(
     115deg,
-    transparent 40%,
+    transparent 30%,
     color-mix(in srgb, var(--accent-color) 28%, transparent) 50%,
-    transparent 60%
+    transparent 70%
   );
   background-size: 250% 100%;
   background-repeat: no-repeat;
   animation: anim-sweep 4s ease-in-out infinite;
 }
 @keyframes anim-pulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 25px rgba(0, 0, 0, 0.9),
+      0 0 3px transparent,
+      inset 0 0 12px var(--primary-glow);
+  }
   50% {
     box-shadow:
       0 0 25px rgba(0, 0, 0, 0.9),
-      0 0 20px var(--primary-color),
-      inset 0 0 24px var(--primary-glow);
+      0 0 28px var(--primary-color),
+      inset 0 0 28px var(--primary-glow);
   }
 }
 @keyframes anim-breathe {
+  0%,
+  100% {
+    border-color: var(--frame-border);
+    box-shadow:
+      0 0 25px rgba(0, 0, 0, 0.9),
+      0 0 3px transparent,
+      inset 0 0 8px var(--primary-glow);
+  }
   50% {
     border-color: var(--primary-color);
     box-shadow:
       0 0 25px rgba(0, 0, 0, 0.9),
-      0 0 10px var(--primary-glow),
-      inset 0 0 28px var(--primary-glow);
+      0 0 16px var(--primary-glow),
+      inset 0 0 32px var(--primary-glow);
   }
 }
 @keyframes anim-neon {
   0%,
-  18%,
-  22%,
-  55%,
-  58%,
+  16%,
+  26%,
+  52%,
+  62%,
   100% {
     border-color: var(--accent-color);
     box-shadow:
       0 0 25px rgba(0, 0, 0, 0.9),
-      0 0 14px var(--primary-color),
-      inset 0 0 15px var(--primary-glow);
+      0 0 18px var(--primary-color),
+      inset 0 0 16px var(--primary-glow);
   }
   20%,
-  56% {
+  57% {
     border-color: var(--frame-border);
     box-shadow:
       0 0 25px rgba(0, 0, 0, 0.9),
+      0 0 3px transparent,
       inset 0 0 6px var(--primary-glow);
   }
 }
